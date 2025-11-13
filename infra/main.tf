@@ -95,7 +95,7 @@ resource "aws_s3_bucket_logging" "logs" {
   target_prefix = "access-logs/"
 }
 
-# Lifecycle configuration (CKV2_AWS_61)
+# Lifecycles configuration (CKV2_AWS_61)
 resource "aws_s3_bucket_lifecycle_configuration" "logs" {
   bucket = aws_s3_bucket.logs.id
 
