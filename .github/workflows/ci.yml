@@ -1,0 +1,58 @@
+name: Terraform & Ansible CI
+
+on:
+  pull_request:
+    paths:
+      - "infra/**"
+      - "ansible/**"
+
+jobs:
+  validate-iac:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) Check out the code so the runner has your repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2) Setup Python because we'll install Ansible, ansible-lint, checkov via pip
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # 3) Install Terraform in a standard way
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
+
+      # 4) Install Ansible, ansible-lint, and Checkov
+      - name: Install IaC tools
+        run: |
+          pip install --upgrade pip
+          pip install ansible ansible-lint checkov
+
+      # 5) Terraform format check
+      - name: Terraform fmt
+        run: terraform -chdir=infra fmt -check
+
+      # 6) Terraform init
+      - name: Terraform init
+        run: terraform -chdir=infra init -input=false
+
+      # 7) Terraform validate
+      - name: Terraform validate
+        run: terraform -chdir=infra validate
+
+      # 8) Checkov scan
+      - name: Checkov scan
+        run: checkov -d infra
+
+      # 9) Ansible syntax check
+      - name: Ansible syntax check
+        run: ansible-playbook -i ansible/inventory/hosts ansible/site.yml --syntax-check
+
+      # 10) Ansible lint
+      - name: Ansible lint
+        run: ansible-lint ansible/
