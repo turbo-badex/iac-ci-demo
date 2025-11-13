@@ -7,7 +7,16 @@ terraform {
       version = "~> 5.0"
     }
   }
+
+  backend "s3" {
+    bucket         = "my-terraform-state-dev-badex"  # <-- your bucket name
+    key            = "infra/terraform.tfstate"       # path inside the bucket
+    region         = "us-east-1"                     # must match bucket region
+    dynamodb_table = "terraform-locks-dev"           # lock table name
+    encrypt        = true
+  }
 }
+
 
 provider "aws" {
   region = "us-east-1"
@@ -18,7 +27,7 @@ variable "logs_bucket_name" {
   description = "Name of the S3 bucket for logs"
 }
 
-# KMS key for encrypting the S3 bucket by default (for CKV_AWS_145)
+# KMS keys for encrypting the S3 bucket by default (for CKV_AWS_145)
 data "aws_caller_identity" "current" {}
 resource "aws_kms_key" "logs" {
   description             = "KMS key for S3 logs bucket"
