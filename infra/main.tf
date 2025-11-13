@@ -9,10 +9,10 @@ terraform {
   }
 
   backend "s3" {
-    bucket         = "my-terraform-state-dev-badex"  # <-- your bucket name
-    key            = "infra/terraform.tfstate"       # path inside the bucket
-    region         = "us-east-1"                     # must match bucket region
-    dynamodb_table = "terraform-locks-dev"           # lock table name
+    bucket         = "my-terraform-state-dev-badex" # <-- your bucket name
+    key            = "infra/terraform.tfstate"      # path inside the bucket
+    region         = "us-east-1"                    # must match bucket region
+    dynamodb_table = "terraform-locks-dev"          # lock table name
     encrypt        = true
   }
 }
