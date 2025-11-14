@@ -42,7 +42,7 @@ jobs:
         run: terraform -chdir=infra validate
 
       - name: Terraform plan
-        run: terraform -chdir=infra plan -input=false
+        run: terraform -chdir=infra plan -input=false -var-file=dev.tfvars
 
   terraform-apply:
     name: Terraform Apply (main)
@@ -77,4 +77,4 @@ jobs:
         run: terraform -chdir=infra validate
 
       - name: Terraform apply
-        run: terraform -chdir=infra apply -input=false -auto-approve
+        run: terraform -chdir=infra apply -input=false -auto-approve -var-file=dev.tfvars
