@@ -49,7 +49,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
-    environment: dev  # you can create this Environment in GitHub for extra safety
+    environment: dev  # you can create this Environment in GitHub for extra safety sake
 
     steps:
       - name: Checkout repository
