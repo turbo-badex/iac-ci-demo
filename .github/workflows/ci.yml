@@ -56,3 +56,30 @@ jobs:
       # 10) Ansible lint
       - name: Ansible lint
         run: ansible-lint ansible/
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Terraform fmt
+        run: terraform -chdir=infra fmt -check
+
+      - name: Terraform init
+        run: terraform -chdir=infra init -input=false
+
+      - name: Terraform validate
+        run: terraform -chdir=infra validate
+
+      - name: Checkov scan
+        run: checkov -d infra
+
+      - name: Ansible syntax check
+        run: ansible-playbook -i ansible/inventory/hosts ansible/site.yml --syntax-check
+
+      - name: Ansible lint
+        run: ansible-lint ansible/
+
+        
