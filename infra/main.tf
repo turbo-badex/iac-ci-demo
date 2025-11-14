@@ -59,8 +59,8 @@ resource "aws_s3_bucket" "logs" {
   # checkov:skip=CKV_AWS_144: Cross-region replication is not required for this training bucket
 
   tags = {
-    Name        = "logs-bucket"
-    Environment = "dev"
+    Name        = "logs-bucket-${var.environment}"
+    Environment = var.environment
   }
 }
 

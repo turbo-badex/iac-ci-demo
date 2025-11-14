@@ -6,6 +6,8 @@ crash.log
 crash.*.log
 *.tfvars
 !infra/dev.tfvars
+!infra/staging.tfvars
+!infra/prod.tfvars
 *.tfvars.json
 override.tf
 override.tf.json
