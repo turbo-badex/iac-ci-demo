@@ -88,10 +88,10 @@ jobs:
       - name: Terraform init (dev)
         run: |
           terraform -chdir=infra init -input=false -reconfigure \
-            -backend-config="bucket=YOUR_STATE_BUCKET_NAME" \
+            -backend-config="bucket=my-terraform-state-dev-badex" \
             -backend-config="key=dev/terraform.tfstate" \
             -backend-config="region=us-east-1" \
-            -backend-config="dynamodb_table=YOUR_LOCK_TABLE_NAME" \
+            -backend-config="dynamodb_table=terraform-locks-dev" \
             -backend-config="encrypt=true"
 
       - name: Terraform fmt
@@ -145,10 +145,10 @@ jobs:
       - name: Terraform init (${{ github.event.inputs.target_env }})
         run: |
           terraform -chdir=infra init -input=false -reconfigure \
-            -backend-config="bucket=YOUR_STATE_BUCKET_NAME" \
+            -backend-config="bucket=my-terraform-state-dev-badex" \
             -backend-config="key=${{ steps.envvars.outputs.BACKEND_KEY }}" \
             -backend-config="region=us-east-1" \
-            -backend-config="dynamodb_table=YOUR_LOCK_TABLE_NAME" \
+            -backend-config="dynamodb_table=terraform-locks-dev" \
             -backend-config="encrypt=true"
 
       - name: Terraform fmt
