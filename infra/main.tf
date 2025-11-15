@@ -171,11 +171,11 @@ resource "aws_security_group" "rds" {
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
-    description      = "PostgreSQL from bastion host"
-    from_port        = 5432
-    to_port          = 5432
-    protocol         = "tcp"
-    security_groups  = [aws_security_group.bastion[0].id]
+    description     = "PostgreSQL from bastion host"
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [aws_security_group.bastion[0].id]
   }
 
   egress {
@@ -225,7 +225,7 @@ resource "aws_db_instance" "dev_postgres" {
   vpc_security_group_ids = [aws_security_group.rds[0].id]
 
   publicly_accessible = false
-  skip_final_snapshot = true  # OK for dev. In prod you'd set this to false.
+  skip_final_snapshot = true # OK for dev. In prod you'd set this to false.
 
   backup_retention_period = 1
 
