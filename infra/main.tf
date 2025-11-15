@@ -266,4 +266,3 @@ resource "aws_instance" "dev_bastion" {
     Environment = var.environment
   }
 }
-
