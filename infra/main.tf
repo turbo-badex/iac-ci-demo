@@ -11,6 +11,10 @@ terraform {
   backend "s3" {}
 }
 
+locals {
+  is_dev = var.environment == "dev"
+}
+
 provider "aws" {
   region = "us-east-1"
 }
@@ -116,5 +120,149 @@ resource "aws_s3_bucket_lifecycle_configuration" "logs" {
     abort_incomplete_multipart_upload {
       days_after_initiation = 7
     }
+  }
+}
+
+# Data source: Default VPC & Subnets
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
+
+# Security Groups for Bastion & RDS
+
+resource "aws_security_group" "bastion" {
+  count       = local.is_dev ? 1 : 0
+  name        = "dev-bastion-sg"
+  description = "Security group for bastion host (dev)"
+  vpc_id      = data.aws_vpc.default.id
+
+  ingress {
+    description = "SSH from allowed CIDR"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [var.allowed_ssh_cidr]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name        = "dev-bastion-sg"
+    Environment = var.environment
+  }
+}
+
+resource "aws_security_group" "rds" {
+  count       = local.is_dev ? 1 : 0
+  name        = "dev-rds-sg"
+  description = "Security group for RDS PostgreSQL (dev)"
+  vpc_id      = data.aws_vpc.default.id
+
+  ingress {
+    description      = "PostgreSQL from bastion host"
+    from_port        = 5432
+    to_port          = 5432
+    protocol         = "tcp"
+    security_groups  = [aws_security_group.bastion[0].id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name        = "dev-rds-sg"
+    Environment = var.environment
+  }
+}
+
+# DB Subnet Group for RDS
+resource "aws_db_subnet_group" "dev" {
+  count       = local.is_dev ? 1 : 0
+  name        = "dev-rds-subnet-group"
+  description = "Subnet group for dev RDS instance"
+  subnet_ids  = data.aws_subnets.default.ids
+
+  tags = {
+    Name        = "dev-rds-subnet-group"
+    Environment = var.environment
+  }
+}
+
+# Create the RDS PostgreSQL Instance (Dev Only)
+resource "aws_db_instance" "dev_postgres" {
+  count = local.is_dev ? 1 : 0
+
+  identifier        = "dev-postgres-${var.environment}"
+  engine            = "postgres"
+  engine_version    = "16.1"
+  instance_class    = "db.t3.micro"
+  allocated_storage = 20
+
+  db_name  = var.db_name
+  username = var.db_username
+
+  # Let AWS manage the master user password in Secrets Manager.
+  # This avoids hardcoding or passing the password in tfvars for now.
+  manage_master_user_password = true
+
+  db_subnet_group_name   = aws_db_subnet_group.dev[0].name
+  vpc_security_group_ids = [aws_security_group.rds[0].id]
+
+  publicly_accessible = false
+  skip_final_snapshot = true  # OK for dev. In prod you'd set this to false.
+
+  backup_retention_period = 1
+
+  deletion_protection = false
+
+  tags = {
+    Name        = "dev-postgres-${var.environment}"
+    Environment = var.environment
+  }
+}
+
+data "aws_ami" "ubuntu" {
+  most_recent = true
+
+  owners = ["099720109477"] # Canonical
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-*-20.04-amd64-server-*"]
+  }
+}
+
+resource "aws_instance" "dev_bastion" {
+  count = local.is_dev ? 1 : 0
+
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = "t3.micro"
+
+  key_name = var.bastion_key_name
+
+  vpc_security_group_ids = [aws_security_group.bastion[0].id]
+  subnet_id              = data.aws_subnets.default.ids[0]
+
+  associate_public_ip_address = true
+
+  tags = {
+    Name        = "dev-bastion-${var.environment}"
+    Environment = var.environment
   }
 }
