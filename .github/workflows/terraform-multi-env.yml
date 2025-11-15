@@ -1,0 +1,164 @@
+on:
+  pull_request:
+    paths:
+      - "infra/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "infra/**"
+  workflow_dispatch:
+    inputs:
+      target_env:
+        description: "Environment to promote to (staging or prod)"
+        required: true
+        type: choice
+        options:
+          - staging
+          - prod
+
+jobs:
+  # ------------------------
+  # 1) DEV PLAN ON PR
+  # ------------------------
+  dev-plan:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    name: Dev - Plan (PR)
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Terraform init (dev)
+        run: |
+          terraform -chdir=infra init -input=false -reconfigure \
+            -backend-config="bucket=my-terraform-state-dev-badex" \
+            -backend-config="key=dev/terraform.tfstate" \
+            -backend-config="region=us-east-1" \
+            -backend-config="dynamodb_table=terraform-locks-dev" \
+            -backend-config="encrypt=true"
+
+      - name: Terraform fmt
+        run: terraform -chdir=infra fmt -check
+
+      - name: Terraform validate
+        run: terraform -chdir=infra validate
+
+      - name: Terraform plan (dev)
+        run: terraform -chdir=infra plan -input=false -var-file=dev.tfvars
+
+  # ------------------------
+  # 2) DEV APPLY ON MAIN
+  # ------------------------
+  dev-apply:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    name: Dev - Apply (main)
+    environment: dev
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Terraform init (dev)
+        run: |
+          terraform -chdir=infra init -input=false -reconfigure \
+            -backend-config="bucket=YOUR_STATE_BUCKET_NAME" \
+            -backend-config="key=dev/terraform.tfstate" \
+            -backend-config="region=us-east-1" \
+            -backend-config="dynamodb_table=YOUR_LOCK_TABLE_NAME" \
+            -backend-config="encrypt=true"
+
+      - name: Terraform fmt
+        run: terraform -chdir=infra fmt -check
+
+      - name: Terraform validate
+        run: terraform -chdir=infra validate
+
+      - name: Terraform apply (dev)
+        run: terraform -chdir=infra apply -input=false -auto-approve -var-file=dev.tfvars
+
+  # ------------------------
+  # 3) STAGING / PROD PROMOTION (MANUAL)
+  # ------------------------
+  promote:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    name: Promote to ${{ github.event.inputs.target_env }}
+    environment: ${{ github.event.inputs.target_env }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Set env-specific variables
+        id: envvars
+        run: |
+          if [ "${{ github.event.inputs.target_env }}" = "staging" ]; then
+            echo "BACKEND_KEY=staging/terraform.tfstate" >> $GITHUB_OUTPUT
+            echo "TFVARS_FILE=staging.tfvars" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.inputs.target_env }}" = "prod" ]; then
+            echo "BACKEND_KEY=prod/terraform.tfstate" >> $GITHUB_OUTPUT
+            echo "TFVARS_FILE=prod.tfvars" >> $GITHUB_OUTPUT
+          else
+            echo "Unsupported environment: ${{ github.event.inputs.target_env }}"
+            exit 1
+          fi
+
+      - name: Terraform init (${{ github.event.inputs.target_env }})
+        run: |
+          terraform -chdir=infra init -input=false -reconfigure \
+            -backend-config="bucket=YOUR_STATE_BUCKET_NAME" \
+            -backend-config="key=${{ steps.envvars.outputs.BACKEND_KEY }}" \
+            -backend-config="region=us-east-1" \
+            -backend-config="dynamodb_table=YOUR_LOCK_TABLE_NAME" \
+            -backend-config="encrypt=true"
+
+      - name: Terraform fmt
+        run: terraform -chdir=infra fmt -check
+
+      - name: Terraform validate
+        run: terraform -chdir=infra validate
+
+      - name: Terraform plan (${{ github.event.inputs.target_env }})
+        run: terraform -chdir=infra plan -input=false -var-file=${{ steps.envvars.outputs.TFVARS_FILE }}
+
+      - name: Terraform apply (${{ github.event.inputs.target_env }})
+        run: terraform -chdir=infra apply -input=false -auto-approve -var-file=${{ steps.envvars.outputs.TFVARS_FILE }}
