@@ -208,9 +208,9 @@ resource "aws_db_subnet_group" "dev" {
 resource "aws_db_instance" "dev_postgres" {
   count = local.is_dev ? 1 : 0
 
-  identifier        = "dev-postgres-${var.environment}"
-  engine            = "postgres"
-  engine_version    = "16.1"
+  identifier = "dev-postgres-${var.environment}"
+  engine     = "postgres"
+  #  engine_version    = "16.1"
   instance_class    = "db.t3.micro"
   allocated_storage = 20
 
