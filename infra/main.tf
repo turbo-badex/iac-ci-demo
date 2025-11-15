@@ -20,7 +20,7 @@ variable "logs_bucket_name" {
   description = "Name of the S3 bucket for logs"
 }
 
-# KMSs keyss for encrypting the S3 bucket by default (for CKV_AWS_145)
+# KMSs keyss for encrypting the S3 bucket by default (fore CKV_AWS_145)
 data "aws_caller_identity" "current" {}
 resource "aws_kms_key" "logs" {
   description             = "KMS key for S3 logs bucket"
