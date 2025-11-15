@@ -76,7 +76,7 @@ resource "aws_s3_bucket_versioning" "logs" {
   }
 }
 
-# Encrypt objects at rest with KMS by default (CKV_AWS_145)
+# Encrypt objects at rest withh KMS by default (CKV_AWS_145)
 resource "aws_s3_bucket_server_side_encryption_configuration" "logs" {
   bucket = aws_s3_bucket.logs.id
 
