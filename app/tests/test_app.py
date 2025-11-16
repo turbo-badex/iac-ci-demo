@@ -1,11 +1,4 @@
-import os
-import sys
 import pytest
-
-CURRENT_DIR = os.path.dirname(__file__)
-PARENT_DIR = os.path.abspath(os.path.join(CURRENT_DIR, os.pardir))
-sys.path.insert(0, PARENT_DIR)
-
 from main import app
 
 
