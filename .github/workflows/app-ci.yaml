@@ -1,13 +1,11 @@
 name: App CI (build, test, scan, push)
 
 on:
-  pull_request:
+  push:
     paths:
       - "app/**"
       - ".github/workflows/app-ci.yml"
-  push:
-    branches:
-      - main
+  pull_request:
     paths:
       - "app/**"
       - ".github/workflows/app-ci.yml"
@@ -46,11 +44,11 @@ jobs:
           ruff check .
 
       - name: Run tests with coverage
-        working-directory: app
+        # IMPORTANT: run from repo root so imports work
         run: |
-          pytest --cov=main --cov-report=term-missing
+          pytest --cov=app --cov-report=term-missing app/tests
 
-      - name: Login to Docker Hub
+      - name: Login to Docker Hub (main only)
         if: github.ref == 'refs/heads/main'
         run: |
           echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
@@ -62,7 +60,6 @@ jobs:
             -t $IMAGE_NAME:latest \
             app
 
-      # scan image with Trivy      
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@0.24.0
         with:
@@ -72,7 +69,6 @@ jobs:
           exit-code: "1"
           vuln-type: "os,library"
 
-          #Push image
       - name: Push image to Docker Hub (main only)
         if: github.ref == 'refs/heads/main'
         run: |
