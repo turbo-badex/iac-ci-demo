@@ -62,6 +62,7 @@ jobs:
             -t $IMAGE_NAME:latest \
             app
 
+      # scan image with Trivy      
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@0.24.0
         with:
