@@ -30,6 +30,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: "app/requirements.txt"
 
       - name: Install app dependencies
         working-directory: app
@@ -57,6 +59,7 @@ jobs:
         run: |
           docker build \
             -t $IMAGE_NAME:${{ github.sha }} \
+            -t $IMAGE_NAME:latest \
             app
 
       - name: Scan Docker image with Trivy
@@ -72,3 +75,4 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           docker push $IMAGE_NAME:${{ github.sha }}
+          docker push $IMAGE_NAME:latest
