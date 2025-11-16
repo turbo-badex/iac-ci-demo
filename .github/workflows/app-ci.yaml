@@ -1,11 +1,13 @@
 name: App CI (build, test, scan, push)
 
 on:
-  push:
+  pull_request:
     paths:
       - "app/**"
       - ".github/workflows/app-ci.yml"
-  pull_request:
+  push:
+    branches:
+      - main
     paths:
       - "app/**"
       - ".github/workflows/app-ci.yml"
@@ -28,7 +30,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: "pip"
           cache-dependency-path: "app/requirements.txt"
 
       - name: Install app dependencies
@@ -44,11 +45,11 @@ jobs:
           ruff check .
 
       - name: Run tests with coverage
-        # IMPORTANT: run from repo root so imports work
+        working-directory: app
         run: |
-          pytest --cov=app --cov-report=term-missing app/tests
+          pytest --cov=main --cov-report=term-missing
 
-      - name: Login to Docker Hub (main only)
+      - name: Login to Docker Hub
         if: github.ref == 'refs/heads/main'
         run: |
           echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
