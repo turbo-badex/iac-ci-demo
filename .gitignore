@@ -19,3 +19,23 @@ bastion-key.pem
 # Ansible
 *.retry
 __pycache__/
+
+
+# Python venvs
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+
+# OS junk
+.DS_Store
+
+# Editor/IDE (optional)
+.vscode/
+.idea/
+app/venv/
