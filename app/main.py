@@ -6,7 +6,7 @@ from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_
 app = Flask(__name__)
 
 # === Metrics ===
-# Golden signal: how many requests by method/path/status
+# Golden signal: how many requests by method/path/statuses
 REQUEST_COUNT = Counter(
     "http_requests_total",
     "Total HTTP requests",
