@@ -25,7 +25,7 @@ jobs:
       - name: Setup SSH key for bastion
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.BASTION_SSH_KEY }}" > ~/.ssh/bastion_key
+          printf '%s\n' "${{ secrets.BASTION_SSH_KEY }}" > ~/.ssh/bastion_key
           chmod 600 ~/.ssh/bastion_key
           ssh-keyscan -H ${{ vars.DEV_BASTION_IP }} >> ~/.ssh/known_hosts || true
 
