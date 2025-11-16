@@ -44,7 +44,7 @@ jobs:
           ruff check .
 
       - name: Run tests with coverage
-        # IMPORTANT: run from repo root so imports work
+        # IMPORTANT: run from repo root so imports works
         run: |
           pytest --cov=app --cov-report=term-missing app/tests
 
