@@ -1,0 +1,7 @@
+---
+- name: Configure dev bastion host
+  hosts: bastion
+  become: true
+
+  roles:
+    - bastion

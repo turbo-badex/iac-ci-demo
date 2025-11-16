@@ -1,0 +1,43 @@
+name: Ansible Bastion (dev)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  configure-bastion-dev:
+    runs-on: ubuntu-latest
+    name: Configure dev bastion host
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Ansible
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible ansible-lint
+
+      - name: Setup SSH key for bastion
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.BASTION_SSH_KEY }}" > ~/.ssh/bastion_key
+          chmod 600 ~/.ssh/bastion_key
+          ssh-keyscan -H ${{ vars.DEV_BASTION_IP }} >> ~/.ssh/known_hosts || true
+
+      - name: Write dynamic inventory for dev bastion
+        run: |
+          mkdir -p ansible/inventory
+          cat > ansible/inventory/dev_ci.ini << EOF2
+          [bastion]
+          dev-bastion ansible_host=${{ vars.DEV_BASTION_IP }} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/bastion_key ansible_python_interpreter=/usr/bin/python3
+          EOF2
+
+      - name: Run Ansible playbook for bastion (dev)
+        working-directory: ansible
+        run: |
+          ansible-playbook -i inventory/dev_ci.ini bastion.yml

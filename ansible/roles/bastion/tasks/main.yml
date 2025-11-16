@@ -1,0 +1,68 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+  become: yes
+
+- name: Install useful packages (Postgres client, tools)
+  apt:
+    name:
+      - postgresql-client
+      - htop
+      - git
+      - tmux
+      - curl
+    state: present
+  become: yes
+
+- name: Create devops user
+  user:
+    name: devops
+    shell: /bin/bash
+    create_home: yes
+  become: yes
+
+- name: Allow devops user passwordless sudo
+  copy:
+    dest: /etc/sudoers.d/devops
+    content: "devops ALL=(ALL) NOPASSWD:ALL\n"
+    mode: "0440"
+  become: yes
+
+- name: Ensure .ssh directory exists for devops
+  file:
+    path: /home/devops/.ssh
+    state: directory
+    owner: devops
+    group: devops
+    mode: "0700"
+  become: yes
+
+# For now, we’ll reuse the ubuntu user’s authorized_keys for devops
+- name: Copy authorized_keys from ubuntu to devops
+  copy:
+    src: /home/ubuntu/.ssh/authorized_keys
+    dest: /home/devops/.ssh/authorized_keys
+    owner: devops
+    group: devops
+    mode: "0600"
+    remote_src: yes
+  become: yes
+
+- name: Disable root SSH login
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PermitRootLogin'
+    line: 'PermitRootLogin no'
+    state: present
+  notify: Restart sshd
+  become: yes
+
+- name: Disable password authentication for SSH
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PasswordAuthentication'
+    line: 'PasswordAuthentication no'
+    state: present
+  notify: Restart sshd
+  become: yes

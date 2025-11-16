@@ -12,6 +12,7 @@ crash.*.log
 override.tf
 override.tf.json
 *_override.tf
+bastion-key.pem
 *_override.tf.json
 .terraform.lock.hcl
 
