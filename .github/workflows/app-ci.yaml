@@ -71,6 +71,7 @@ jobs:
           exit-code: "1"
           vuln-type: "os,library"
 
+          #Push image
       - name: Push image to Docker Hub (main only)
         if: github.ref == 'refs/heads/main'
         run: |
