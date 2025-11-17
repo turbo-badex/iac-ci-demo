@@ -38,9 +38,6 @@ jobs:
       DB_NAME: orders
       DB_USER: orders_user
       DB_PASSWORD: supersecretdev
-      IMAGE_NAME: YOUR_DOCKERHUB_USERNAME/iac-ci-demo-app  # if you already had this, keep it
-
-    env:
       IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/iac-ci-demo-app
 
     steps:
