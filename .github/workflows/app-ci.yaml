@@ -17,6 +17,29 @@ jobs:
   build-test-scan:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: orders
+          POSTGRES_USER: orders_user
+          POSTGRES_PASSWORD: supersecretdev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U orders_user -d orders"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: orders
+      DB_USER: orders_user
+      DB_PASSWORD: supersecretdev
+      IMAGE_NAME: YOUR_DOCKERHUB_USERNAME/iac-ci-demo-app  # if you already had this, keep it
+
     env:
       IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/iac-ci-demo-app
 
