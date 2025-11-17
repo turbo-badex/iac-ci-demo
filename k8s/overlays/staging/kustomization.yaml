@@ -1,16 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-resources:
-  - ../../base
-  - namespace.yaml
-  - rds-secret.yaml
-
 namespace: staging
 
-images:
-  - name: badex/iac-ci-demo-app
-    newTag: latest
-
-patchesStrategicMerge:
-  - orders-api-db-env-patch.yaml
+resources:
+  - ../../base
