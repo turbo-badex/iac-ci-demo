@@ -179,5 +179,5 @@ def metrics():
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "8080"))
-    # For local dev only; in Docker we use gunicorn
+    # For local dev only; in Docker we use gunicorns
     app.run(host="0.0.0.0", port=port)
