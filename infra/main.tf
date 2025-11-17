@@ -191,7 +191,7 @@ resource "aws_security_group" "rds" {
   }
 }
 
-# DB Subnet Group for RDS
+# DB Subnet Group for RDSS
 resource "aws_db_subnet_group" "dev" {
   count       = local.is_dev ? 1 : 0
   name        = "dev-rds-subnet-group"
