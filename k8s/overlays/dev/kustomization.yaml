@@ -17,5 +17,7 @@ images:
   - name: badex/iac-ci-demo-app
     newTag: latest
 
+patchesStrategicMerge:
+  - orders-api-db-env-patch.yaml
 # (Optional) dev-specific tweaks
 # You could also add patches here to change replicas, resources, etc.
