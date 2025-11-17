@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Start from the shared base
+resources:
+  - ../../base
+  - namespace.yaml
+
+# All resources in this overlay live in the 'dev' namespace
+namespace: dev
+
+# Override the image tag for dev environment
+images:
+  - name: badex/iac-ci-demo-app
+    newTag: latest
+
+# (Optional) dev-specific tweaks
+# You could also add patches here to change replicas, resources, etc.
