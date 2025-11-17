@@ -5,6 +5,7 @@ kind: Kustomization
 resources:
   - ../../base
   - namespace.yaml
+  - postgres-secret.yaml
 
 # All resources in this overlay live in the 'dev' namespace
 namespace: dev
