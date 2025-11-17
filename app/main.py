@@ -66,7 +66,7 @@ def init_db():
         conn.close()
 
 
-# @app.before_first_request
+# @app.before_first_requests
 # def startup():
     # Ensure DB schema exists
 #    init_db()
