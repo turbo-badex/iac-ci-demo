@@ -6,6 +6,8 @@ resources:
   - ../../base
   - namespace.yaml
   - postgres-secret.yaml
+  - postgres-deployment.yaml
+  - postgres-service.yaml
 
 # All resources in this overlay live in the 'dev' namespace
 namespace: dev
