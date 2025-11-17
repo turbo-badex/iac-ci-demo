@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: postgres
+  name: orders-postgres
   labels:
-    app: postgres
+    app: orders-postgres
 spec:
   type: ClusterIP
   selector:
-    app: postgres
+    app: orders-postgres
   ports:
     - name: postgres
       port: 5432
