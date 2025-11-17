@@ -1,14 +1,13 @@
-output "dev_bastion_public_ip" {
-  description = "Public IP of the dev bastion host"
-  value       = local.is_dev && length(aws_instance.dev_bastion) > 0 ? aws_instance.dev_bastion[0].public_ip : null
+# outputs.tf
+
+# Name of the logs bucket (useful for debugging or wiring to other tools)
+output "logs_bucket_name" {
+  description = "Name of the S3 bucket for logs"
+  value       = aws_s3_bucket.logs.id
 }
 
-output "dev_rds_endpoint" {
-  description = "Endpoint of the dev RDS PostgreSQL instance"
-  value       = local.is_dev && length(aws_db_instance.dev_postgres) > 0 ? aws_db_instance.dev_postgres[0].address : null
-}
-
-output "dev_rds_db_name" {
-  description = "Database name on the dev RDS instance"
-  value       = var.db_name
+# ARN of the KMS key used to encrypt the logs bucket
+output "logs_kms_key_arn" {
+  description = "ARN of the KMS key for the logs bucket"
+  value       = aws_kms_key.logs.arn
 }

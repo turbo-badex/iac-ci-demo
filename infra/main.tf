@@ -143,17 +143,3 @@ resource "aws_s3_bucket_lifecycle_configuration" "logs" {
     }
   }
 }
-
-#############################
-# Outputs
-#############################
-
-output "logs_bucket_name" {
-  description = "Name of the S3 bucket for logs"
-  value       = aws_s3_bucket.logs.id
-}
-
-output "logs_kms_key_arn" {
-  description = "ARN of the KMS key used for bucket encryption"
-  value       = aws_kms_key.logs.arn
-}
